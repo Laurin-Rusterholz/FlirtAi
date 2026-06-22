@@ -156,6 +156,7 @@ body {
   align-items: center;
   flex-wrap: wrap;
   min-height: 60px;
+  margin-top: 22px; /* Abstand zum Titel (d Unterzeile isch ewägg) */
 }
 
 .btn {
