@@ -61,6 +61,10 @@ function showScreen(id) {
     s.classList.toggle("is-active", active);
     s.hidden = !active;
   });
+  // De geflüchtet Nei-Knopf liit evtl. direkt im <body> — usblende, wenn mer
+  // d Frage-Siite verlaht, sünsch schwebt er über de andärä Siitä.
+  const noBtn = document.getElementById("btn-no");
+  if (noBtn && id !== "screen-ask") noBtn.style.display = "none";
   window.scrollTo({ top: 0 });
 }
 
@@ -218,12 +222,22 @@ function setupNoButton() {
     const w = r.width || 120;
     const h = r.height || 56;
     const pad = 14;
+
+    // Bim erschte Mal use de Karte i de <body> hänke: d Karte het en
+    // backdrop-filter, wodure "position: fixed" sünsch relativ zur Karte wär —
+    // de Knopf würd denn usem Bild flüge / verschwinde. Im <body> isch fixed
+    // korrekt relativ zum Fänschter. Zerscht am gliiche Ort fixe, denn animiere.
+    if (noBtn.parentElement !== document.body) {
+      document.body.appendChild(noBtn);
+      noBtn.classList.add("dodging");
+      noBtn.style.left = r.left + "px";
+      noBtn.style.top = r.top + "px";
+      void noBtn.offsetWidth; // Reflow → Ausgangspunkt für de weichi Übergang
+    }
+
     side = side === "right" ? "left" : "right"; // immer uf di anderi Siite
-    const left = side === "left" ? pad : window.innerWidth - w - pad;
-    const top = clamp(r.top, pad, window.innerHeight - h - pad);
-    noBtn.classList.add("dodging");
-    noBtn.style.left = left + "px";
-    noBtn.style.top = top + "px";
+    noBtn.style.left = (side === "left" ? pad : window.innerWidth - w - pad) + "px";
+    noBtn.style.top = clamp(r.top, pad, window.innerHeight - h - pad) + "px";
     taunt.textContent = taunts[(Math.random() * taunts.length) | 0];
     vibrate(12);
   }
