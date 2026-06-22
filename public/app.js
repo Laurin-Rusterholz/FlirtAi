@@ -168,11 +168,6 @@ const FX = (() => {
       for (let i = 0; i < 30; i++) add(makeHeart(x, y));
       start();
     },
-    /** Chliine Herz-Schwung (z. B. wenn "Nei" zu "Ja" wird) */
-    pop(x, y) {
-      for (let i = 0; i < 14; i++) add(makeHeart(x, y));
-      start();
-    },
     /** Sanfter Herzregen von oben (für die Danke-Seite) */
     rain(durationMs = 2600) {
       const end = Date.now() + durationMs;
@@ -203,41 +198,55 @@ function setupYesButton() {
   $("#btn-yes").addEventListener("click", function () { proceedToDate(this); });
 }
 
-/* ─── "Nei" — bliibt immer am Bildschirm & wird zu "Ja" ────────────────────
-   Kei Flüchte meh: Bim Drücke verwandlet sich de Nei-Knopf ad gliiche Stell
-   i en zweite "Ja"-Knopf. So chasch praktisch nöd Nei säge 😏 De nöchscht
-   Druck (jetz "Ja") gaht denn wiiter zur Termin-Siite. */
+/* ─── "Nei" — springt immer uf di anderi Siite, bliibt aber am Bildschirm ───
+   De Nei-Knopf wird NÖD zu "Ja". Sobald mer en aaluegt oder drückt, hüpft er
+   uf di gegenüberliegendi Siite vom Bildschirm — und immer vollständig sichtbar,
+   sodass mer en praktisch nöd träffe cha. */
 function setupNoButton() {
   const noBtn = $("#btn-no");
-  const hint = $("#no-taunt");
-  let converted = false;
+  const taunt = $("#no-taunt");
+  const taunts = ["Hä, nei? 😏", "Uf di anderi Siite! 🏃‍♀️", "Z'langsam 💨", "Probier's no 😘", "Nöd mit mir 😎"];
+  let side = "right"; // Startsiite i de Knopf-Reihe (rächts vom "Ja")
+  let lastMove = 0;
+  let lastDodge = 0;
 
-  function morphToYes() {
-    converted = true;
-    noBtn.textContent = "Ja 💕";
-    noBtn.classList.remove("btn-no");
-    noBtn.classList.add("btn-yes", "just-converted");
+  function dodge() {
+    const now = performance.now();
+    if (now - lastDodge < 180) return; // doppelti Events (z. B. Touch) zämmefasse
+    lastDodge = now;
     const r = noBtn.getBoundingClientRect();
-    FX.pop(r.left + r.width / 2, r.top + r.height / 2);
-    hint.textContent = "Gäll, eigentli wetsch Ja 😏 — druck nomal 💕";
-    vibrate(25);
+    const w = r.width || 120;
+    const h = r.height || 56;
+    const pad = 14;
+    side = side === "right" ? "left" : "right"; // immer uf di anderi Siite
+    const left = side === "left" ? pad : window.innerWidth - w - pad;
+    const top = clamp(r.top, pad, window.innerHeight - h - pad);
+    noBtn.classList.add("dodging");
+    noBtn.style.left = left + "px";
+    noBtn.style.top = top + "px";
+    taunt.textContent = taunts[(Math.random() * taunts.length) | 0];
+    vibrate(12);
   }
 
-  // Bim Drücke: zerscht zu "Ja" werde, denn (zwöite Druck) wiiter.
-  noBtn.addEventListener("click", (e) => {
-    if (!converted) { e.preventDefault(); morphToYes(); }
-    else proceedToDate(noBtn);
+  // Touch/Klick: ausweiche, bevor de Tipp zählt — uf em Handy nöd z träffe.
+  noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); dodge(); }, { passive: false });
+  noBtn.addEventListener("pointerenter", dodge);
+  noBtn.addEventListener("click", (e) => { e.preventDefault(); dodge(); });
+  noBtn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dodge(); }
   });
 
-  // Uf em Desktop: chli zABble bi Annäherig — bliibt aber ad Ort.
-  noBtn.addEventListener("pointerenter", () => {
-    if (converted) return;
-    noBtn.classList.remove("wiggle");
-    void noBtn.offsetWidth; // Reflow erzwinge, damit d Animation neu startet
-    noBtn.classList.add("wiggle");
-  });
-  noBtn.addEventListener("animationend", () => {
-    noBtn.classList.remove("wiggle", "just-converted");
+  // Desktop: scho bi Annäherig vo de Muus springe (chli gedrosslet).
+  document.addEventListener("pointermove", (e) => {
+    if (e.pointerType && e.pointerType !== "mouse") return;
+    if ($("#screen-ask").hidden) return;
+    const now = performance.now();
+    if (now - lastMove < 60) return;
+    lastMove = now;
+    const r = noBtn.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 90) dodge();
   });
 }
 
