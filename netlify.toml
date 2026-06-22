@@ -1,0 +1,9 @@
+# Statische Date-Einladungs-Seite — kein Build-Schritt nötig.
+[build]
+  publish = "public"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
