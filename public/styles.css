@@ -243,20 +243,29 @@ body {
   box-shadow: 0 6px 16px -6px rgba(255, 46, 99, 0.55);
 }
 
-/* Date- & Zyt-Fäld i eme Grid mit Abstand — Tracks chönnд sich nöd überlappä. */
+/* Date- & Zyt-Fäld i eme Grid; minmax(0,1fr) laht d Spalte schmaler als de
+   intrinsisch Inhalt werde, sünsch würded native iOS-Inputs z breit. */
 .fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   margin-bottom: 18px;
 }
 
 .input {
   display: block;
+  box-sizing: border-box;
   width: 100%;
+  min-width: 0; /* wichtig: Grid-Item söll under d intrinsisch Breiti chönne */
   min-height: 54px;
+  /* native Chrome vo Date-/Time-Inputs wäg, damit sie d Breiti respektiered */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   font: inherit;
   font-size: 17px;
   font-weight: 600;
+  text-align: center;
   color: var(--ink);
   background: rgba(255, 255, 255, 0.92);
   border: 1.5px solid rgba(255, 91, 138, 0.35);
