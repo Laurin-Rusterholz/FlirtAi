@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de-CH">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -37,20 +37,17 @@
     <section id="screen-date" class="screen" aria-labelledby="date-title" hidden>
       <div class="card">
         <div class="emoji-heart" aria-hidden="true">🗓️</div>
-        <h1 id="date-title" class="title">Wänn chasch?</h1>
-        <p class="subtitle">Such der eifach en Momänt für öis us 💫</p>
+        <h1 id="date-title" class="title">Welli ziit passt dir?</h1>
 
         <form id="date-form" novalidate>
           <div class="quick-chips" id="quick-chips" role="group" aria-label="Schnällwahl"></div>
 
           <label class="field">
-            <span class="field-label">Tag</span>
-            <input type="date" id="input-date" class="input" required autocomplete="off" />
+            <input type="date" id="input-date" class="input" required autocomplete="off" aria-label="Tag" />
           </label>
 
           <label class="field">
-            <span class="field-label">Zyt</span>
-            <input type="time" id="input-time" class="input" value="19:00" required autocomplete="off" />
+            <input type="time" id="input-time" class="input" value="19:00" required autocomplete="off" aria-label="Ziit" />
           </label>
 
           <button id="btn-submit" class="btn btn-yes btn-block" type="submit">Bestätige 💌</button>

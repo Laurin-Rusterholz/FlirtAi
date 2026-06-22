@@ -202,15 +202,14 @@ function setupYesButton() {
   $("#btn-yes").addEventListener("click", function () { proceedToDate(this); });
 }
 
-/* ─── "Nei" — springt immer uf di anderi Siite, bliibt aber am Bildschirm ───
+/* ─── "Nei" — hüpft a immer verschiedeni Stelle, bliibt aber am Bildschirm ──
    De Nei-Knopf wird NÖD zu "Ja". Sobald mer en aaluegt oder drückt, hüpft er
-   uf di gegenüberliegendi Siite vom Bildschirm — und immer vollständig sichtbar,
-   sodass mer en praktisch nöd träffe cha. */
+   a en zufälligi Stell im sichtbarä Beriich — jedes Mal woandersch, sodass mer
+   en praktisch nöd träffe cha. */
 function setupNoButton() {
   const noBtn = $("#btn-no");
   const taunt = $("#no-taunt");
-  const taunts = ["Hä, nei? 😏", "Uf di anderi Siite! 🏃‍♀️", "Z'langsam 💨", "Probier's no 😘", "Nöd mit mir 😎"];
-  let side = "right"; // Startsiite i de Knopf-Reihe (rächts vom "Ja")
+  const taunts = ["Hä, nei? 😏", "Verwütsch mi nöd! 🏃‍♀️", "Z'langsam 💨", "Probier's no 😘", "Nöd mit mir 😎"];
   let lastMove = 0;
   let lastDodge = 0;
 
@@ -235,9 +234,16 @@ function setupNoButton() {
       void noBtn.offsetWidth; // Reflow → Ausgangspunkt für de weichi Übergang
     }
 
-    side = side === "right" ? "left" : "right"; // immer uf di anderi Siite
-    noBtn.style.left = (side === "left" ? pad : window.innerWidth - w - pad) + "px";
-    noBtn.style.top = clamp(r.top, pad, window.innerHeight - h - pad) + "px";
+    // Zufälligi Position — jedes Mal woandersch, aber chli wäg vo de letzte.
+    const maxLeft = Math.max(pad, window.innerWidth - w - pad);
+    const maxTop = Math.max(pad, window.innerHeight - h - pad);
+    let left, top, tries = 0;
+    do {
+      left = rand(pad, maxLeft);
+      top = rand(pad, maxTop);
+    } while (++tries < 10 && Math.hypot(left - r.left, top - r.top) < 170);
+    noBtn.style.left = left + "px";
+    noBtn.style.top = top + "px";
     taunt.textContent = taunts[(Math.random() * taunts.length) | 0];
     vibrate(12);
   }

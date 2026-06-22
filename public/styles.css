@@ -244,14 +244,6 @@ body {
 }
 
 .field { display: block; margin-bottom: 16px; }
-.field-label {
-  display: block;
-  margin-bottom: 7px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  padding-left: 4px;
-}
 
 .input {
   width: 100%;
