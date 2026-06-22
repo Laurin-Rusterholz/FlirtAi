@@ -38,9 +38,9 @@ const rand = (min, max) => Math.random() * (max - min) + min;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const vibrate = (ms) => { try { navigator.vibrate && navigator.vibrate(ms); } catch (_) {} };
 
-const WEEKDAYS = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const WEEKDAYS = ["Sunntig", "Mäntig", "Ziischtig", "Mittwuch", "Dunschtig", "Friitig", "Samschtig"];
 const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
-  "August", "September", "Oktober", "November", "Dezember"];
+  "Auguscht", "Septämber", "Oktober", "Novämber", "Dezämber"];
 
 function toYmd(d) {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -168,6 +168,11 @@ const FX = (() => {
       for (let i = 0; i < 30; i++) add(makeHeart(x, y));
       start();
     },
+    /** Chliine Herz-Schwung (z. B. wenn "Nei" zu "Ja" wird) */
+    pop(x, y) {
+      for (let i = 0; i < 14; i++) add(makeHeart(x, y));
+      start();
+    },
     /** Sanfter Herzregen von oben (für die Danke-Seite) */
     rain(durationMs = 2600) {
       const end = Date.now() + durationMs;
@@ -184,70 +189,55 @@ const FX = (() => {
   };
 })();
 
-/* ─── Der flüchtende "Nein"-Button ────────────────────────────────────────── */
-function setupNoButton() {
-  const noBtn = $("#btn-no");
-  const yesBtn = $("#btn-yes");
-  const taunt = $("#no-taunt");
-  const taunts = [
-    "Zu langsam! 😏", "Versuch's nochmal 😘", "Daneben! 💨", "Niemals 😅",
-    "Nope! 💕", "Hihi 🙈", "Nicht mit mir 😎", "Fast! …nicht 😝", "Erwischt mich nicht 🏃‍♀️",
-  ];
-  let dodges = 0;
-  let lastMove = 0;
-
-  function flee() {
-    const rect = noBtn.getBoundingClientRect();
-    const w = rect.width || 120;
-    const h = rect.height || 56;
-    const pad = 12;
-    const maxLeft = window.innerWidth - w - pad;
-    const maxTop = window.innerHeight - h - pad;
-
-    noBtn.classList.add("fleeing");
-    noBtn.style.left = clamp(rand(pad, maxLeft), pad, maxLeft) + "px";
-    noBtn.style.top = clamp(rand(pad, maxTop), pad, maxTop) + "px";
-
-    dodges++;
-    // "Ja" wird mit jedem Fluchtversuch etwas größer (gedeckelt),
-    // "Nein" schrumpft ein wenig.
-    yesBtn.style.setProperty("--yes-grow", Math.min(1 + dodges * 0.07, 1.7).toFixed(2));
-    noBtn.style.transform = `scale(${Math.max(1 - dodges * 0.04, 0.62).toFixed(2)})`;
-    taunt.textContent = taunts[(Math.random() * taunts.length) | 0];
-    vibrate(12);
-  }
-
-  // Touch: vor dem Klick ausweichen, damit man ihn auf dem Handy nie trifft
-  noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); flee(); }, { passive: false });
-  noBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); flee(); });
-  noBtn.addEventListener("pointerenter", flee);
-  noBtn.addEventListener("mouseover", flee);
-  noBtn.addEventListener("click", (e) => { e.preventDefault(); flee(); });
-  noBtn.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flee(); }
-  });
-
-  // Desktop: schon bei Annäherung der Maus flüchten (fühlt sich lebendig an)
-  document.addEventListener("pointermove", (e) => {
-    if (e.pointerType && e.pointerType !== "mouse") return;
-    if ($("#screen-ask").hidden) return;
-    const now = performance.now();
-    if (now - lastMove < 40) return;
-    lastMove = now;
-    const r = noBtn.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 90) flee();
-  });
+/* ─── Gemeinsame Wiiterleitig zur Termin-Siite ────────────────────────────── */
+function proceedToDate(originEl) {
+  const el = originEl || $("#btn-yes");
+  const r = el.getBoundingClientRect();
+  FX.burst(r.left + r.width / 2, r.top + r.height / 2);
+  vibrate([20, 40, 20]);
+  setTimeout(() => showScreen("screen-date"), 650);
 }
 
-/* ─── "Ja!" → Übergang auf die Termin-Seite ───────────────────────────────── */
+/* ─── "Ja!" ───────────────────────────────────────────────────────────────── */
 function setupYesButton() {
-  $("#btn-yes").addEventListener("click", () => {
-    const r = $("#btn-yes").getBoundingClientRect();
-    FX.burst(r.left + r.width / 2, r.top + r.height / 2);
-    vibrate([20, 40, 20]);
-    setTimeout(() => showScreen("screen-date"), 650);
+  $("#btn-yes").addEventListener("click", function () { proceedToDate(this); });
+}
+
+/* ─── "Nei" — bliibt immer am Bildschirm & wird zu "Ja" ────────────────────
+   Kei Flüchte meh: Bim Drücke verwandlet sich de Nei-Knopf ad gliiche Stell
+   i en zweite "Ja"-Knopf. So chasch praktisch nöd Nei säge 😏 De nöchscht
+   Druck (jetz "Ja") gaht denn wiiter zur Termin-Siite. */
+function setupNoButton() {
+  const noBtn = $("#btn-no");
+  const hint = $("#no-taunt");
+  let converted = false;
+
+  function morphToYes() {
+    converted = true;
+    noBtn.textContent = "Ja 💕";
+    noBtn.classList.remove("btn-no");
+    noBtn.classList.add("btn-yes", "just-converted");
+    const r = noBtn.getBoundingClientRect();
+    FX.pop(r.left + r.width / 2, r.top + r.height / 2);
+    hint.textContent = "Gäll, eigentli wetsch Ja 😏 — druck nomal 💕";
+    vibrate(25);
+  }
+
+  // Bim Drücke: zerscht zu "Ja" werde, denn (zwöite Druck) wiiter.
+  noBtn.addEventListener("click", (e) => {
+    if (!converted) { e.preventDefault(); morphToYes(); }
+    else proceedToDate(noBtn);
+  });
+
+  // Uf em Desktop: chli zABble bi Annäherig — bliibt aber ad Ort.
+  noBtn.addEventListener("pointerenter", () => {
+    if (converted) return;
+    noBtn.classList.remove("wiggle");
+    void noBtn.offsetWidth; // Reflow erzwinge, damit d Animation neu startet
+    noBtn.classList.add("wiggle");
+  });
+  noBtn.addEventListener("animationend", () => {
+    noBtn.classList.remove("wiggle", "just-converted");
   });
 }
 
@@ -277,10 +267,10 @@ function setupDateForm() {
   }
 
   const chips = [
-    { label: "Heute Abend", date: todayYmd, time: "19:00" },
-    { label: "Morgen Abend", date: tomorrow(), time: "19:00" },
-    { label: "Samstag", date: upcoming(6), time: "19:00" },
-    { label: "Sonntag", date: upcoming(0), time: "15:00" },
+    { label: "Hüt Abig", date: todayYmd, time: "19:00" },
+    { label: "Morn Abig", date: tomorrow(), time: "19:00" },
+    { label: "Samschtig", date: upcoming(6), time: "19:00" },
+    { label: "Sunntig", date: upcoming(0), time: "15:00" },
   ];
 
   chips.forEach((c) => {
@@ -311,13 +301,13 @@ function setupDateForm() {
     const date = dateInput.value;
     const time = timeInput.value;
 
-    if (!date) { errEl.textContent = "Bitte wähle einen Tag aus 🙂"; return; }
-    if (date < todayYmd) { errEl.textContent = "Bitte wähle einen Tag in der Zukunft 💫"; return; }
-    if (!time) { errEl.textContent = "Bitte wähle eine Uhrzeit aus 🙂"; return; }
+    if (!date) { errEl.textContent = "Wähl bitte en Tag us 🙂"; return; }
+    if (date < todayYmd) { errEl.textContent = "Wähl bitte en Tag i de Zuekunft 💫"; return; }
+    if (!time) { errEl.textContent = "Wähl bitte e Zyt us 🙂"; return; }
 
     submitBtn.disabled = true;
     const original = submitBtn.textContent;
-    submitBtn.textContent = "Senden… 💌";
+    submitBtn.textContent = "Am schicke… 💌";
 
     const payload = { date, time, name: "Cati" };
     // lokale Sicherungskopie (falls der Endpoint mal nicht erreichbar ist)
@@ -352,10 +342,10 @@ async function sendToAiSync(payload) {
 
 function goToThankYou(date, time, result) {
   $("#done-summary").textContent =
-    `Wir sehen uns am ${formatDateLong(date)} um ${time} Uhr 💕`;
+    `Mir gsehnd öis am ${formatDateLong(date)} am ${time} Uhr 💕`;
   $("#done-note").textContent = result && result.ok
-    ? "Er weiß jetzt Bescheid 💌"
-    : "Ich kann's kaum erwarten ✨";
+    ? "Er weiss jetz Bscheid 💌"
+    : "Ich cha's fasch nöd erwarte ✨";
   showScreen("screen-done");
   FX.rain(2800);
   vibrate([20, 40, 20, 40, 60]);
