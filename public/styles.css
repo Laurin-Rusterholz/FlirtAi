@@ -243,10 +243,17 @@ body {
   box-shadow: 0 6px 16px -6px rgba(255, 46, 99, 0.55);
 }
 
-.field { display: block; margin-bottom: 16px; }
+/* Date- & Zyt-Fäld i eme Grid mit Abstand — Tracks chönnд sich nöd überlappä. */
+.fields {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
 
 .input {
+  display: block;
   width: 100%;
+  min-height: 54px;
   font: inherit;
   font-size: 17px;
   font-weight: 600;
