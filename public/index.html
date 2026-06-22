@@ -43,8 +43,14 @@
           <div class="quick-chips" id="quick-chips" role="group" aria-label="Schnällwahl"></div>
 
           <div class="fields">
-            <input type="date" id="input-date" class="input" required autocomplete="off" aria-label="Tag" />
-            <input type="time" id="input-time" class="input" value="19:00" required autocomplete="off" aria-label="Ziit" />
+            <div class="picker">
+              <button type="button" class="input picker-btn is-empty" id="date-btn" aria-label="Tag wähle">TT.MM.JJJJ</button>
+              <input type="date" id="input-date" class="picker-native" required aria-label="Tag" tabindex="-1" />
+            </div>
+            <div class="picker">
+              <button type="button" class="input picker-btn" id="time-btn" aria-label="Zyt wähle">19:00</button>
+              <input type="time" id="input-time" class="picker-native" value="19:00" required aria-label="Ziit" tabindex="-1" />
+            </div>
           </div>
 
           <button id="btn-submit" class="btn btn-yes btn-block" type="submit">Bestätige 💌</button>

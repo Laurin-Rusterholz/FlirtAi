@@ -278,11 +278,20 @@ body {
   border-color: var(--rose);
   box-shadow: 0 0 0 4px rgba(255, 91, 138, 0.18);
 }
-/* native Picker-Indicator in Rosa */
-.input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.7;
-  filter: invert(36%) sepia(72%) saturate(3200%) hue-rotate(316deg) brightness(101%) contrast(101%);
+/* ── Date-/Zyt-Picker ─────────────────────────────────────────────────────
+   De Knopf zeigt immer s Schwiizer Format; de unsichtbar nativ Input liit
+   driber, öffnet de Picker und haltet de Wert (ISO / 24 h). */
+.picker { position: relative; min-width: 0; }
+.picker-btn { cursor: pointer; }
+.picker-btn.is-empty { color: var(--ink-soft); opacity: 0.7; }
+.picker-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  border: 0;
+  background: none;
+  pointer-events: none; /* de Knopf handhabt de Tap und ruft showPicker() */
 }
 
 .form-error {

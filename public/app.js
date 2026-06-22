@@ -53,6 +53,11 @@ function formatDateLong(ymd) {
   const d = new Date(+m[1], +m[2] - 1, +m[3]);
   return `${WEEKDAYS[d.getDay()]}, ${+m[3]}. ${MONTHS[+m[2] - 1]} ${m[1]}`;
 }
+// Immer Schwiizer Format: "2026-06-22" → "22.06.2026"
+function formatDateSwiss(ymd) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || "");
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : "";
+}
 
 /* ─── Bildschirm-Wechsel ──────────────────────────────────────────────────── */
 function showScreen(id) {
@@ -279,6 +284,9 @@ function setupDateForm() {
   const errEl = $("#form-error");
   const submitBtn = $("#btn-submit");
 
+  const dateBtn = $("#date-btn");
+  const timeBtn = $("#time-btn");
+
   const today = new Date();
   const todayYmd = toYmd(today);
   dateInput.min = todayYmd;
@@ -294,6 +302,30 @@ function setupDateForm() {
     d.setDate(d.getDate() + 1);
     return toYmd(d);
   }
+
+  // Anzeig immer i Schwiizer Format (TT.MM.JJJJ / 24 h) — egal welli Geräte-Regioon.
+  function renderDisplays() {
+    if (dateInput.value) {
+      dateBtn.textContent = formatDateSwiss(dateInput.value);
+      dateBtn.classList.remove("is-empty");
+    } else {
+      dateBtn.textContent = "TT.MM.JJJJ";
+      dateBtn.classList.add("is-empty");
+    }
+    timeBtn.textContent = timeInput.value || "--:--";
+    timeBtn.classList.toggle("is-empty", !timeInput.value);
+  }
+
+  // Native Picker öffne (mobil = schöni Rad-Auswahl); de Wert blibt ISO / 24 h.
+  function openPicker(input) {
+    if (typeof input.showPicker === "function") {
+      try { input.showPicker(); return; } catch (e) { /* Fallback unten */ }
+    }
+    input.focus();
+    input.click();
+  }
+  dateBtn.addEventListener("click", () => openPicker(dateInput));
+  timeBtn.addEventListener("click", () => openPicker(timeInput));
 
   const chips = [
     { label: "Hüt Abig", date: todayYmd, time: "19:00" },
@@ -313,17 +345,23 @@ function setupDateForm() {
       chipsBox.querySelectorAll(".chip").forEach((x) => x.classList.remove("is-selected"));
       b.classList.add("is-selected");
       errEl.textContent = "";
+      renderDisplays();
     });
     chipsBox.appendChild(b);
   });
 
-  // manuelle Änderung hebt die Chip-Markierung auf
-  [dateInput, timeInput].forEach((inp) =>
-    inp.addEventListener("input", () => {
+  // Änderig über de native Picker → Anzeig aktualisiere, Chip-Markierig löse
+  [dateInput, timeInput].forEach((inp) => {
+    const onChange = () => {
       chipsBox.querySelectorAll(".chip").forEach((x) => x.classList.remove("is-selected"));
       errEl.textContent = "";
-    })
-  );
+      renderDisplays();
+    };
+    inp.addEventListener("input", onChange);
+    inp.addEventListener("change", onChange);
+  });
+
+  renderDisplays();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
